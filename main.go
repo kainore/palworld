@@ -13,18 +13,23 @@ func check(e error) {
 	}
 }
 
-var palBreed []paldex.PalBreed
-
-func Prepare() {
-	palBreed = paldex.ListFiles()
+type PalBreed struct {
+	palBreed []paldex.PalBreed
 }
 
-func GetAllBreadings() *[]paldex.PalBreed {
-	return &palBreed
+func NewPalBreed() *PalBreed {
+	palBreed := paldex.ListFiles()
+	return &PalBreed{
+		palBreed: palBreed,
+	}
 }
 
-func ByChieldName(name string) *paldex.PalBreed {
-	for _, breed := range palBreed {
+func (pal *PalBreed) GetAll() *[]paldex.PalBreed {
+	return &pal.palBreed
+}
+
+func (pal *PalBreed) ByChieldName(name string) *paldex.PalBreed {
+	for _, breed := range pal.palBreed {
 		if strings.ToLower(name) == strings.ToLower(breed.Name) {
 			return &breed
 		}
@@ -32,9 +37,9 @@ func ByChieldName(name string) *paldex.PalBreed {
 	return nil
 }
 
-func FindByChieldAndParrent(chield, parrent string) [][]string {
+func (pal *PalBreed) FindByChieldAndParrent(chield, parrent string) [][]string {
 	var result [][]string
-	parrents := ByChieldName(chield)
+	parrents := pal.ByChieldName(chield)
 	for i := 0; i < len(parrents.Parrents); i++ {
 		for j := 0; j < len(parrents.Parrents[i]); j++ {
 			if strings.ToLower(parrent) == strings.ToLower(parrents.Parrents[i][j]) {
