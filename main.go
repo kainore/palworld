@@ -14,7 +14,7 @@ func check(e error) {
 }
 
 type PalBreed struct {
-	palBreed []paldex.PalBreed
+	palBreed []paldex.PalBreed `json:"pal_breed"`
 }
 
 func NewPalBreed() *PalBreed {
