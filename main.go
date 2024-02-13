@@ -1,14 +1,10 @@
-package main
+package palworld
 
 import (
-	"errors"
 	"log"
-	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
-
-	"kainore.com/palworld/paldex"
+	"github.com/kainore/palworld/paldex"
 )
 
 func check(e error) {
@@ -19,59 +15,26 @@ func check(e error) {
 
 var palBreed []paldex.PalBreed
 
-func main() {
-	pal := paldex.Load("./data/paldex.json")
-	res, err := pal.Find_name("anubis")
-	check(err)
-	log.Println(res.Name, "found")
+func Prepare() {
 	palBreed = paldex.ListFiles()
-
-	router := gin.Default()
-	router.GET("/", getAllBreeding)
-	router.GET("/byChield/:name", getParrents)
-	router.GET("byChieldWithParrent/:chield/:parrent", getMissingParrent)
-	router.Run(":8080")
 }
 
-func getAllBreeding(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, palBreed)
+func GetAllBreadings() *[]paldex.PalBreed {
+	return &palBreed
 }
 
-func palBreedContains(name string) (*paldex.PalBreed, error) {
+func ByChieldName(name string) *paldex.PalBreed {
 	for _, breed := range palBreed {
 		if strings.ToLower(name) == strings.ToLower(breed.Name) {
-			return &breed, nil
+			return &breed
 		}
 	}
-	return nil, errors.New("Pal not found")
+	return nil
 }
 
-func getParrents(c *gin.Context) {
-	name := c.Param("name")
-	breed, err := palBreedContains(name)
-	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{
-			"status": err.Error(),
-		})
-		return
-	}
-	c.IndentedJSON(http.StatusOK, breed)
-	return
-}
-
-func parrentListContains(list [][]string, value []string) bool {
-	for i := 0; i < len(list); i++ {
-		if list[i] != nil {
-			if list[i][0] == value[0] && list[i][1] == value[1] {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func findMissingParrent(parrent string, parrents paldex.PalBreed) [][]string {
+func FindByChieldAndParrent(chield, parrent string) [][]string {
 	var result [][]string
+	parrents := ByChieldName(chield)
 	for i := 0; i < len(parrents.Parrents); i++ {
 		for j := 0; j < len(parrents.Parrents[i]); j++ {
 			if strings.ToLower(parrent) == strings.ToLower(parrents.Parrents[i][j]) {
@@ -81,30 +44,19 @@ func findMissingParrent(parrent string, parrents paldex.PalBreed) [][]string {
 			}
 		}
 	}
+
 	return result
 }
 
-func getMissingParrent(c *gin.Context) {
-	chield := c.Param("chield")
-	parrent := c.Param("parrent")
-	parrents, err := palBreedContains(chield)
-	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{
-			"status":  err.Error(),
-			"chield":  chield,
-			"parrent": parrent,
-		})
-		return
+func parrentListContains(list [][]string, value []string) bool {
+	for i := 0; i < len(list); i++ {
+		if list[i] != nil {
+			if list[i][0] == value[0] && list[i][1] == value[1] {
+				return true
+			} else if list[i][1] == value[0] && list[i][0] == value[0] {
+				return true
+			}
+		}
 	}
-	result := findMissingParrent(parrent, *parrents)
-	if len(result) == 0 {
-		c.IndentedJSON(http.StatusNotFound, gin.H{
-			"status":  "Nothing found with this combo",
-			"chield":  chield,
-			"parrent": parrent,
-		})
-		return
-	}
-	c.IndentedJSON(http.StatusNotFound, result)
-	return
+	return false
 }
