@@ -14,22 +14,22 @@ func check(e error) {
 }
 
 type PalBreed struct {
-	palBreed []paldex.PalBreed `json:"pal_breed"`
+	PalBreed []paldex.PalBreed `json:"pal_breed"`
 }
 
 func NewPalBreed() *PalBreed {
 	palBreed := paldex.ListFiles()
 	return &PalBreed{
-		palBreed: palBreed,
+		PalBreed: palBreed,
 	}
 }
 
 func (pal *PalBreed) GetAll() *[]paldex.PalBreed {
-	return &pal.palBreed
+	return &pal.PalBreed
 }
 
 func (pal *PalBreed) ByChieldName(name string) *paldex.PalBreed {
-	for _, breed := range pal.palBreed {
+	for _, breed := range pal.PalBreed {
 		if strings.ToLower(name) == strings.ToLower(breed.Name) {
 			return &breed
 		}
